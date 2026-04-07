@@ -196,7 +196,7 @@ Simulates classical progression:
 ### 1. Clone or Download
 
 ```bash
-git clone https://github.com/your-repo/devkay-harmonium.git
+git clone https://github.com/DharminJoshi/devkay-harmonium.git
 cd devkay-harmonium
 ```
 
