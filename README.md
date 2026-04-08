@@ -196,7 +196,7 @@ Simulates classical progression:
 ### 1. Clone or Download
 
 ```bash
-git clone https://github.com/your-repo/devkay-harmonium.git
+git clone https://github.com/DharminJoshi/devkay-harmonium.git
 cd devkay-harmonium
 ```
 
@@ -299,7 +299,7 @@ Due to browser autoplay policies:
 
 ## ⚖️ License
 
-This project is licensed under the **CC BY-NC 4.0**  License.  
+This project is licensed under the **MIT**  License.  
 See the [LICENSE](LICENSE) file for full details.
 
 ---
