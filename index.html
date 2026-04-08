@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>DevKay Harmonium</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
       <span class="brand-icon">𝄞</span>
       <div>
         <h1>DevKay <em>Harmonium</em></h1>
-        <p>Indian Classical · Raag · Taal · Learning · Recording · MIDI · WAV</p>
+        <p class="brand-sub">Indian Classical · Raag · Taal · Recording · MIDI · WAV</p>
       </div>
     </div>
     <div class="header-right">
@@ -29,17 +29,18 @@
         <span class="pill" id="pitchStatus">MIC —</span>
         <span class="pill" id="recordStatus">REC —</span>
       </div>
-      <button id="startAudioBtn" class="btn-start"><span class="btn-dot"></span> Initialise Audio</button>
+      <button id="startAudioBtn" class="btn-start"><span class="btn-dot"></span> <span class="btn-start-label">Initialise Audio</span></button>
     </div>
   </header>
 
-  <!-- ── MAIN GRID ── -->
-  <main class="grid">
+  <!-- ══════════════════════════════════════════════
+       DESKTOP GRID (hidden on mobile)
+  ══════════════════════════════════════════════ -->
+  <main class="grid desktop-grid">
 
-    <!-- ════════════════ LEFT PANEL ════════════════ -->
+    <!-- ── LEFT PANEL ── -->
     <aside class="panel panel-controls">
       <h2 class="panel-title">Controls</h2>
-
       <div class="ctrl-group">
         <div class="ctrl-label"><span>Volume</span><span class="ctrl-val" id="volumeVal">80</span></div>
         <input class="slider" id="volume" type="range" min="0" max="100" value="80" />
@@ -52,18 +53,16 @@
         <div class="ctrl-label"><span>Sustain (ms)</span><span class="ctrl-val" id="sustainVal">1200</span></div>
         <input class="slider" id="sustain" type="range" min="100" max="4000" value="1200" />
       </div>
-
-      <!-- Scale selector -->
       <div class="ctrl-group">
         <div class="ctrl-label"><span>Scale / Key (Sa root)</span><span class="ctrl-val" id="scaleLabel">C4</span></div>
         <div class="scale-grid">
           <div class="scale-row scale-row-black">
-            <button class="scale-btn scale-black" data-semi="1" title="C♯/D♭">C#</button>
-            <button class="scale-btn scale-black" data-semi="3" title="D♯/E♭">D#</button>
+            <button class="scale-btn scale-black" data-semi="1">C#</button>
+            <button class="scale-btn scale-black" data-semi="3">D#</button>
             <span class="scale-gap"></span>
-            <button class="scale-btn scale-black" data-semi="6" title="F♯/G♭">F#</button>
-            <button class="scale-btn scale-black" data-semi="8" title="G♯/A♭">G#</button>
-            <button class="scale-btn scale-black" data-semi="10" title="A♯/B♭">A#</button>
+            <button class="scale-btn scale-black" data-semi="6">F#</button>
+            <button class="scale-btn scale-black" data-semi="8">G#</button>
+            <button class="scale-btn scale-black" data-semi="10">A#</button>
           </div>
           <div class="scale-row scale-row-white">
             <button class="scale-btn scale-white active-scale" data-semi="0">C</button>
@@ -90,7 +89,6 @@
           <button class="stepper-btn" id="transposeUp">+</button>
         </div>
       </div>
-
       <div class="ctrl-group">
         <div class="ctrl-label"><span>Keyboard octave</span></div>
         <div class="stepper">
@@ -99,20 +97,14 @@
           <button class="stepper-btn" id="octaveUp">+</button>
         </div>
       </div>
-
-      <!-- Tuning Temperament (NEW) -->
-      <h2 class="panel-title" style="margin-top:20px">Tuning Temperament</h2>
-      <div class="ctrl-group">
-        <select class="select" id="temperamentSelect">
-          <option value="equal">Equal (12-TET)</option>
-          <option value="just">Just Intonation</option>
-          <option value="pyth">Pythagorean</option>
-          <option value="mean">Meantone (¼-comma)</option>
-          <option value="shruti">Shruti (22-sruti)</option>
-        </select>
-        <p class="muted-text" style="margin-top:6px">Changes the exact frequency of each note. Just & Shruti feel more resonant for Indian music.</p>
-      </div>
-
+      <h2 class="panel-title" style="margin-top:18px">Tuning Temperament</h2>
+      <select class="select" id="temperamentSelect">
+        <option value="equal">Equal (12-TET)</option>
+        <option value="just">Just Intonation</option>
+        <option value="pyth">Pythagorean</option>
+        <option value="mean">Meantone (¼-comma)</option>
+        <option value="shruti">Shruti (22-sruti)</option>
+      </select>
       <div class="toggle-row">
         <label class="toggle-label" for="droneToggle">Drone Sa‑Pa‑Sa</label>
         <label class="switch"><input id="droneToggle" type="checkbox" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
@@ -126,17 +118,12 @@
         <select class="select" id="raagSelect"></select>
       </div>
       <div class="raag-card" id="raagInfo"></div>
-
-      <!-- Session (NEW) -->
-      <h2 class="panel-title" style="margin-top:24px">Session</h2>
+      <h2 class="panel-title" style="margin-top:20px">Session</h2>
       <div class="btn-group">
         <button class="btn btn-accent" id="saveSessionBtn">💾 Save</button>
         <button class="btn" id="loadSessionBtn">📂 Load</button>
       </div>
-      <p class="muted-text" style="margin-top:6px">Saves all settings, reed config, scale, taal & recordings to browser storage.</p>
-
-      <!-- Recorder -->
-      <h2 class="panel-title" style="margin-top:20px">Recorder</h2>
+      <h2 class="panel-title" style="margin-top:18px">Recorder</h2>
       <div class="btn-group">
         <button class="btn btn-danger" id="recordBtn">⏺ Record</button>
         <button class="btn" id="playRecordingBtn">▶ Play</button>
@@ -144,23 +131,18 @@
       </div>
       <div class="export-group">
         <span class="export-label">Export as</span>
-        <button class="btn export-btn" id="exportJsonBtn" title="Export session data as JSON">⬇ JSON</button>
-        <button class="btn export-btn" id="exportMidiBtn" title="Export as standard MIDI file">🎹 MIDI</button>
-        <button class="btn export-btn btn-export-audio" id="exportWavBtn" title="Export as lossless WAV audio">🎵 WAV</button>
-        <button class="btn export-btn btn-export-audio" id="exportMp3Btn" title="Export as compressed MP3/WebM audio">🎵 MP3</button>
+        <button class="btn export-btn" id="exportJsonBtn" title="JSON">⬇ JSON</button>
+        <button class="btn export-btn" id="exportMidiBtn" title="MIDI">🎹 MIDI</button>
+        <button class="btn export-btn btn-export-audio" id="exportWavBtn" title="WAV">🎵 WAV</button>
+        <button class="btn export-btn btn-export-audio" id="exportMp3Btn" title="MP3">🎵 MP3</button>
       </div>
       <p class="muted-text">Files named: <code style="font-size:0.68rem;color:var(--gold-bright)">devkay_harmonium_[date]_[time]_[code]</code></p>
-
-      <!-- Pitch Detection -->
-      <h2 class="panel-title" style="margin-top:20px">Pitch Detection</h2>
+      <h2 class="panel-title" style="margin-top:18px">Pitch Detection</h2>
       <div class="btn-group">
         <button class="btn btn-accent" id="startMicBtn">🎤 Start</button>
         <button class="btn" id="stopMicBtn">⏹ Stop</button>
       </div>
-      <p class="muted-text">Sing or hum — nearest harmonium note shown in real time.</p>
-
-      <!-- Reed Adjustment -->
-      <h2 class="panel-title" style="margin-top:24px">Reed Adjustment</h2>
+      <h2 class="panel-title" style="margin-top:18px">Reed Adjustment</h2>
       <div class="reed-stops">
         <div class="reed-stop-badge"><span class="stop-dot stop-main"></span>Main</div>
         <div class="reed-stop-badge"><span class="stop-dot stop-chorus"></span>Chorus</div>
@@ -189,10 +171,8 @@
       </div>
     </aside>
 
-    <!-- ════════════════ CENTER PANEL ════════════════ -->
+    <!-- ── CENTER PANEL ── -->
     <section class="panel panel-center">
-
-      <!-- Display strip -->
       <div class="display-strip">
         <div class="display-cell"><span class="display-label">Note</span><span class="display-big" id="currentNote">—</span></div>
         <div class="display-divider"></div>
@@ -204,13 +184,7 @@
         <div class="display-divider"></div>
         <div class="display-cell"><span class="display-label">Sample</span><span class="display-big small" id="sampleStatus">—</span></div>
       </div>
-
-      <!-- Waveform visualiser (NEW) -->
-      <div class="viz-wrap">
-        <canvas id="vizCanvas" width="800" height="48"></canvas>
-      </div>
-
-      <!-- Alap / Jod / Jhala (NEW) -->
+      <div class="viz-wrap"><canvas id="vizCanvas" width="800" height="48"></canvas></div>
       <div class="phase-panel">
         <div class="phase-buttons">
           <button class="phase-btn active-phase" data-phase="alap">🌅 Alap</button>
@@ -222,8 +196,6 @@
           <span class="phase-desc" id="phaseDesc">Free tempo — no rhythm. Slowly introduce each note of the raag from Sa upward. Hold, explore, breathe.</span>
         </div>
       </div>
-
-      <!-- Practice -->
       <div class="lesson-panel">
         <div class="lesson-header">
           <h2 class="panel-title" style="margin:0">Practice</h2>
@@ -234,15 +206,20 @@
         </div>
         <div class="hint-box" id="lessonHint">Select a lesson and press Start.</div>
       </div>
-
-      <!-- Keyboard -->
-      <div class="keyboard-wrap">
-        <div id="keyboard" class="keyboard"></div>
+      <!-- Keyboard + scroll slider -->
+      <div class="keyboard-section">
+        <div class="keyboard-scroll-wrap" id="keyboardScrollWrap">
+          <div id="keyboard" class="keyboard"></div>
+        </div>
+        <div class="keyboard-slider-row">
+          <span class="ks-label">◀</span>
+          <input type="range" id="keyboardScroller" class="keyboard-scroller" min="0" max="100" value="0" step="1" />
+          <span class="ks-label">▶</span>
+          <span class="ks-range-label" id="keyRangeLabel">C3 – C5</span>
+        </div>
       </div>
-
-      <!-- Key legend -->
       <div class="keymap-legend">
-        <span class="km-title">White keys →</span>
+        <span class="km-title">White →</span>
         <span class="km-pair"><kbd>`</kbd> B</span><span class="km-pair"><kbd>Q</kbd> Sa</span>
         <span class="km-pair"><kbd>W</kbd> Re</span><span class="km-pair"><kbd>E</kbd> Ga</span>
         <span class="km-pair"><kbd>R</kbd> Ma</span><span class="km-pair"><kbd>T</kbd> Pa</span>
@@ -252,18 +229,16 @@
         <span class="km-pair"><kbd>]</kbd> Pa'</span><span class="km-pair"><kbd>\</kbd> Dha'</span>
       </div>
       <div class="keymap-legend keymap-black">
-        <span class="km-section">Black keys →</span>
+        <span class="km-section">Black →</span>
         <span class="km-pair"><kbd>1</kbd> re</span><span class="km-pair"><kbd>2</kbd> ga</span>
         <span class="km-pair"><kbd>4</kbd> Ma#</span><span class="km-pair"><kbd>5</kbd> dha</span>
         <span class="km-pair"><kbd>7</kbd> ni</span><span class="km-pair"><kbd>8</kbd> re'</span>
         <span class="km-pair"><kbd>9</kbd> ga'</span><span class="km-pair"><kbd>-</kbd> Ma#'</span>
         <span class="km-pair"><kbd>=</kbd> dha'</span>
       </div>
-
-      <!-- Taal Metronome (NEW) -->
       <div class="taal-panel">
         <div class="taal-header">
-          <h2 class="panel-title" style="margin:0">Taal Metronome</h2>
+          <h2 class="panel-title" style="margin:0">Taal</h2>
           <select class="select select-sm" id="taalSelect">
             <option value="teentaal">Teentaal (16)</option>
             <option value="ektaal">Ektaal (12)</option>
@@ -272,38 +247,31 @@
             <option value="rupak">Rupak (7)</option>
             <option value="dadra">Dadra (6)</option>
           </select>
-          <div class="ctrl-label" style="margin:0 6px 0 10px;white-space:nowrap"><span>BPM</span></div>
-          <input class="slider" id="taalBPM" type="range" min="30" max="240" value="80" style="width:100px;flex-shrink:0" />
-          <span class="ctrl-val" id="taalBPMVal" style="min-width:30px">80</span>
-          <button class="btn btn-accent" id="taalRunBtn">▶ Start Taal</button>
+          <input class="slider" id="taalBPM" type="range" min="30" max="240" value="80" style="width:90px;flex-shrink:0" />
+          <span class="ctrl-val" id="taalBPMVal" style="min-width:28px">80</span>
+          <button class="btn btn-accent" id="taalRunBtn">▶ Start</button>
         </div>
         <div class="taal-beats-wrap" id="taalBeatsWrap"></div>
         <div class="taal-legend">
-          <span class="taal-legend-item"><span class="tl-dot tl-sam"></span>Sam (beat 1)</span>
-          <span class="taal-legend-item"><span class="tl-dot tl-khali"></span>Khali (empty)</span>
+          <span class="taal-legend-item"><span class="tl-dot tl-sam"></span>Sam</span>
+          <span class="taal-legend-item"><span class="tl-dot tl-khali"></span>Khali</span>
           <span class="taal-legend-item"><span class="tl-dot tl-beat"></span>Beat</span>
         </div>
       </div>
-
-      <!-- Piano Roll (NEW) -->
       <div class="pianoroll-panel">
         <div class="pianoroll-header">
           <h2 class="panel-title" style="margin:0">Piano Roll</h2>
-          <span class="muted-text" style="font-size:0.72rem">Records as you play — export as MIDI or WAV</span>
+          <span class="muted-text" style="font-size:0.72rem">Records as you play</span>
         </div>
         <canvas id="pianoRollCanvas" width="800" height="90" style="width:100%;border-radius:var(--r-md);display:block"></canvas>
       </div>
     </section>
 
-    <!-- ════════════════ RIGHT PANEL ════════════════ -->
+    <!-- ── RIGHT PANEL ── -->
     <aside class="panel panel-right">
-
-      <!-- Time of Day Raag (NEW) -->
-      <h2 class="panel-title">Now Playing: Raag of the Hour</h2>
+      <h2 class="panel-title">Raag of the Hour</h2>
       <div id="todRaagWrap" class="tod-wrap"></div>
-
-      <!-- Harmonic Overtone Mixer (NEW) -->
-      <h2 class="panel-title" style="margin-top:24px">Harmonic Overtone Mixer</h2>
+      <h2 class="panel-title" style="margin-top:20px">Harmonic Overtone Mixer</h2>
       <div class="btn-group" style="margin-bottom:10px">
         <button class="btn overtone-preset" data-preset="natural">Natural</button>
         <button class="btn overtone-preset" data-preset="bright">Bright</button>
@@ -312,30 +280,224 @@
         <button class="btn overtone-preset" data-preset="flute">Flute</button>
       </div>
       <div id="overtoneSlidersWrap" class="overtone-wrap"></div>
-      <p class="muted-text" style="margin-top:6px">Blend individual harmonics. Affects all notes in real time via additive synthesis oscillators.</p>
-
-      <h2 class="panel-title" style="margin-top:24px">Raag Detail</h2>
+      <h2 class="panel-title" style="margin-top:20px">Raag Detail</h2>
       <div class="raag-detail" id="raagDetail"></div>
-
-      <h2 class="panel-title" style="margin-top:24px">Legend</h2>
+      <h2 class="panel-title" style="margin-top:20px">Legend</h2>
       <div class="legend">
-        <div class="legend-row"><span class="legend-swatch vadi-swatch"></span> Vadi (primary)</div>
-        <div class="legend-row"><span class="legend-swatch samvadi-swatch"></span> Samvadi (secondary)</div>
-        <div class="legend-row"><span class="legend-swatch active-swatch"></span> Active / pressed</div>
+        <div class="legend-row"><span class="legend-swatch vadi-swatch"></span> Vadi</div>
+        <div class="legend-row"><span class="legend-swatch samvadi-swatch"></span> Samvadi</div>
+        <div class="legend-row"><span class="legend-swatch active-swatch"></span> Active</div>
         <div class="legend-row"><span class="legend-swatch disabled-swatch"></span> Out of raag</div>
       </div>
-
-      <h2 class="panel-title" style="margin-top:24px">Audio Engine</h2>
-      <div class="engine-info">
-        <p>Single <strong>real harmonium recording</strong> (D3, 147 Hz) pitch-shifted via <code>playbackRate</code>.</p>
-        <p>Stable loop region (7.2–9.2 s) for sustain. Temperament offsets applied in cents. Harmonic overtones added via oscillators.</p>
+      <div class="engine-info" style="margin-top:16px">
         <div class="engine-badge" id="engineBadge">⏳ Waiting for init</div>
       </div>
     </aside>
-
   </main>
-</div>
 
+  <!-- ══════════════════════════════════════════════
+       MOBILE LAYOUT (shown only on small screens)
+  ══════════════════════════════════════════════ -->
+  <div class="mobile-layout">
+
+    <!-- Always-visible: display strip + keyboard -->
+    <div class="mob-always">
+      <div class="display-strip mob-strip">
+        <div class="display-cell"><span class="display-label">Note</span><span class="display-big" id="mob-currentNote">—</span></div>
+        <div class="display-divider"></div>
+        <div class="display-cell"><span class="display-label">Sargam</span><span class="display-big accent" id="mob-currentSargam">—</span></div>
+        <div class="display-divider"></div>
+        <div class="display-cell"><span class="display-label">Sa</span><span class="display-big" id="mob-currentScale" style="color:var(--gold-bright)">C4</span></div>
+        <div class="display-divider"></div>
+        <div class="display-cell"><span class="display-label">REC</span><span class="display-big small" id="mob-recordStatus" style="color:var(--danger)">—</span></div>
+      </div>
+
+      <!-- Keyboard -->
+      <div class="mob-keyboard-section">
+        <div class="keyboard-scroll-wrap" id="mob-keyboardScrollWrap">
+          <div id="mob-keyboard" class="keyboard mob-keyboard"></div>
+        </div>
+        <div class="keyboard-slider-row">
+          <span class="ks-label">◀</span>
+          <input type="range" id="mob-keyboardScroller" class="keyboard-scroller" min="0" max="100" value="0" step="1" />
+          <span class="ks-label">▶</span>
+          <span class="ks-range-label" id="mob-keyRangeLabel">C3–C5</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab panes -->
+    <div class="mob-panes">
+      <!-- PLAY tab -->
+      <div class="mob-pane mob-pane-active" id="pane-play">
+        <div class="mob-section-title">Quick Controls</div>
+        <div class="mob-row">
+          <label class="mob-label">Vol</label>
+          <input class="slider" id="mob-volume" type="range" min="0" max="100" value="80" />
+          <span class="ctrl-val" id="mob-volumeVal">80</span>
+        </div>
+        <div class="mob-row">
+          <label class="mob-label">Rev</label>
+          <input class="slider" id="mob-reverb" type="range" min="0" max="100" value="20" />
+          <span class="ctrl-val" id="mob-reverbVal">20</span>
+        </div>
+        <div class="mob-row">
+          <label class="mob-label">Sus</label>
+          <input class="slider" id="mob-sustain" type="range" min="100" max="4000" value="1200" />
+          <span class="ctrl-val" id="mob-sustainVal">1200</span>
+        </div>
+        <div class="mob-row" style="margin-top:10px">
+          <label class="mob-label">Drone</label>
+          <label class="switch"><input id="mob-droneToggle" type="checkbox" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          <label class="mob-label" style="margin-left:12px">Restrict</label>
+          <label class="switch"><input id="mob-raagRestrict" type="checkbox" checked /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+        </div>
+        <div class="mob-row" style="margin-top:6px">
+          <label class="mob-label">Raag</label>
+          <select class="select" id="mob-raagSelect" style="flex:1"></select>
+        </div>
+        <div class="mob-row" style="margin-top:6px">
+          <label class="mob-label">Key</label>
+          <select class="select" id="mob-keySelect" style="flex:1">
+            <option value="0">C</option><option value="1">C#</option><option value="2">D</option>
+            <option value="3">D#</option><option value="4">E</option><option value="5">F</option>
+            <option value="6">F#</option><option value="7">G</option><option value="8">G#</option>
+            <option value="9">A</option><option value="10">A#</option><option value="11">B</option>
+          </select>
+          <select class="select" id="mob-rootOctSelect" style="width:60px;margin-left:6px">
+            <option value="2">Oct 2</option><option value="3">Oct 3</option>
+            <option value="4" selected>Oct 4</option><option value="5">Oct 5</option><option value="6">Oct 6</option>
+          </select>
+        </div>
+        <div class="mob-phase-row">
+          <button class="phase-btn active-phase" data-phase="alap" id="mob-phase-alap">🌅 Alap</button>
+          <button class="phase-btn" data-phase="jod" id="mob-phase-jod">🌊 Jod</button>
+          <button class="phase-btn" data-phase="jhala" id="mob-phase-jhala">⚡ Jhala</button>
+        </div>
+      </div>
+
+      <!-- TAAL tab -->
+      <div class="mob-pane" id="pane-taal">
+        <div class="mob-section-title">Taal Metronome</div>
+        <div class="mob-row">
+          <select class="select" id="mob-taalSelect" style="flex:1">
+            <option value="teentaal">Teentaal (16)</option>
+            <option value="ektaal">Ektaal (12)</option>
+            <option value="jhaptaal">Jhaptaal (10)</option>
+            <option value="keherwa">Keherwa (8)</option>
+            <option value="rupak">Rupak (7)</option>
+            <option value="dadra">Dadra (6)</option>
+          </select>
+          <button class="btn btn-accent" id="mob-taalRunBtn" style="margin-left:8px;white-space:nowrap">▶ Start</button>
+        </div>
+        <div class="mob-row">
+          <label class="mob-label">BPM</label>
+          <input class="slider" id="mob-taalBPM" type="range" min="30" max="240" value="80" />
+          <span class="ctrl-val" id="mob-taalBPMVal">80</span>
+        </div>
+        <div class="taal-beats-wrap" id="mob-taalBeatsWrap" style="margin-top:12px"></div>
+        <div class="taal-legend" style="margin-top:8px">
+          <span class="taal-legend-item"><span class="tl-dot tl-sam"></span>Sam</span>
+          <span class="taal-legend-item"><span class="tl-dot tl-khali"></span>Khali</span>
+          <span class="taal-legend-item"><span class="tl-dot tl-beat"></span>Beat</span>
+        </div>
+        <div class="mob-section-title" style="margin-top:16px">Practice Hint</div>
+        <div class="mob-row" style="flex-wrap:wrap;gap:6px">
+          <select class="select" id="mob-lessonSelect" style="flex:1"></select>
+          <button class="btn btn-accent" id="mob-startLesson">Start</button>
+          <button class="btn" id="mob-nextHint">Hint</button>
+          <span class="score-badge" id="mob-lessonScore">0%</span>
+        </div>
+        <div class="hint-box" id="mob-lessonHint" style="margin-top:8px">Select a lesson to begin.</div>
+      </div>
+
+      <!-- RECORD tab -->
+      <div class="mob-pane" id="pane-record">
+        <div class="mob-section-title">Recording</div>
+        <div class="btn-group" style="margin-bottom:10px">
+          <button class="btn btn-danger" id="mob-recordBtn">⏺ Record</button>
+          <button class="btn" id="mob-playRecordingBtn">▶ Play</button>
+          <button class="btn" id="mob-clearRecordingBtn">✕ Clear</button>
+        </div>
+        <div class="export-group">
+          <span class="export-label">Export</span>
+          <button class="btn export-btn" id="mob-exportJsonBtn">JSON</button>
+          <button class="btn export-btn" id="mob-exportMidiBtn">MIDI</button>
+          <button class="btn export-btn btn-export-audio" id="mob-exportWavBtn">WAV</button>
+          <button class="btn export-btn btn-export-audio" id="mob-exportMp3Btn">MP3</button>
+        </div>
+        <div class="mob-section-title" style="margin-top:14px">Piano Roll</div>
+        <canvas id="mob-pianoRollCanvas" width="600" height="80" style="width:100%;border-radius:var(--r-md);display:block;margin-top:6px"></canvas>
+        <div class="mob-section-title" style="margin-top:14px">Session</div>
+        <div class="btn-group">
+          <button class="btn btn-accent" id="mob-saveSessionBtn">💾 Save</button>
+          <button class="btn" id="mob-loadSessionBtn">📂 Load</button>
+        </div>
+        <div class="mob-section-title" style="margin-top:14px">Pitch Detect</div>
+        <div class="btn-group">
+          <button class="btn btn-accent" id="mob-startMicBtn">🎤 Start Mic</button>
+          <button class="btn" id="mob-stopMicBtn">⏹ Stop</button>
+        </div>
+        <div class="display-big small" id="mob-voiceNote" style="margin-top:8px;color:var(--accent)">—</div>
+      </div>
+
+      <!-- SOUND tab -->
+      <div class="mob-pane" id="pane-sound">
+        <div class="mob-section-title">Reed Adjustment</div>
+        <div class="reed-stops" style="margin-bottom:10px">
+          <div class="reed-stop-badge"><span class="stop-dot stop-main"></span>Main</div>
+          <div class="reed-stop-badge"><span class="stop-dot stop-chorus"></span>Chorus</div>
+          <div class="reed-stop-badge"><span class="stop-dot stop-sub"></span>Bass</div>
+          <label class="reed-stop-badge toggle-chime"><input type="checkbox" id="mob-reedChime" /><span class="stop-dot stop-chime"></span>Chime</label>
+        </div>
+        <div class="mob-row"><label class="mob-label">Bright</label><input class="slider" id="mob-reedBrightness" type="range" min="0" max="100" value="50" /><span class="ctrl-val" id="mob-reedBrightnessVal">50</span></div>
+        <div class="mob-row"><label class="mob-label">Chorus</label><input class="slider" id="mob-reedChorus" type="range" min="0" max="100" value="0" /><span class="ctrl-val" id="mob-reedChorusVal">0</span></div>
+        <div class="mob-row"><label class="mob-label">Tremolo</label><input class="slider" id="mob-reedTremolo" type="range" min="0" max="100" value="0" /><span class="ctrl-val" id="mob-reedTremoloVal">0</span></div>
+        <div class="mob-row"><label class="mob-label">Rate</label><input class="slider" id="mob-reedTremoloRate" type="range" min="1" max="12" step="0.5" value="5" /><span class="ctrl-val" id="mob-reedTremoloRateVal">5.0</span></div>
+        <div class="mob-row"><label class="mob-label">Bass</label><input class="slider" id="mob-reedSubOctave" type="range" min="0" max="100" value="0" /><span class="ctrl-val" id="mob-reedSubOctaveVal">0</span></div>
+        <div class="mob-section-title" style="margin-top:14px">Tuning</div>
+        <select class="select" id="mob-temperamentSelect" style="width:100%;margin-top:4px">
+          <option value="equal">Equal (12-TET)</option>
+          <option value="just">Just Intonation</option>
+          <option value="pyth">Pythagorean</option>
+          <option value="mean">Meantone (¼-comma)</option>
+          <option value="shruti">Shruti (22-sruti)</option>
+        </select>
+        <div class="mob-section-title" style="margin-top:14px">Harmonic Overtones</div>
+        <div class="btn-group" style="margin-bottom:8px">
+          <button class="btn overtone-preset" data-preset="natural">Natural</button>
+          <button class="btn overtone-preset" data-preset="bright">Bright</button>
+          <button class="btn overtone-preset" data-preset="mellow">Mellow</button>
+          <button class="btn overtone-preset" data-preset="organ">Organ</button>
+          <button class="btn overtone-preset" data-preset="flute">Flute</button>
+        </div>
+        <div id="mob-overtoneSlidersWrap" class="overtone-wrap"></div>
+        <div class="engine-badge" id="mob-engineBadge" style="margin-top:12px;display:block">⏳ Waiting</div>
+      </div>
+    </div>
+
+    <!-- Bottom tab bar -->
+    <nav class="mob-tabbar">
+      <button class="mob-tab mob-tab-active" data-tab="play">
+        <span class="mob-tab-icon">🎹</span>
+        <span class="mob-tab-label">Play</span>
+      </button>
+      <button class="mob-tab" data-tab="taal">
+        <span class="mob-tab-icon">🥁</span>
+        <span class="mob-tab-label">Taal</span>
+      </button>
+      <button class="mob-tab" data-tab="record">
+        <span class="mob-tab-icon">⏺</span>
+        <span class="mob-tab-label">Record</span>
+      </button>
+      <button class="mob-tab" data-tab="sound">
+        <span class="mob-tab-icon">🎛</span>
+        <span class="mob-tab-label">Sound</span>
+      </button>
+    </nav>
+  </div><!-- /mobile-layout -->
+
+</div><!-- /app -->
 <script src="app.js"></script>
 </body>
 </html>

@@ -268,11 +268,14 @@ function playNote(rawNote){
   const pitch=WESTERN[((midi%12)+12)%12];
   if(!isAllowedPitch(pitch)||!audioCtx||!harmoniumBuf) return;
   playMidi(midi);
-  document.getElementById("currentNote").textContent=midiToName(midi);
-  document.getElementById("currentSargam").textContent=NOTE_TO_SARGAM[pitch]||"—";
+  const noteName=midiToName(midi), sargam=NOTE_TO_SARGAM[pitch]||"—";
+  document.getElementById("currentNote").textContent=noteName;
+  document.getElementById("currentSargam").textContent=sargam;
+  const mn=document.getElementById("mob-currentNote"); if(mn) mn.textContent=noteName;
+  const ms=document.getElementById("mob-currentSargam"); if(ms) ms.textContent=sargam;
   highlightKey(rawNote,true);
-  if(state.recording) state.recorded.push({type:"on",note:midiToName(midi),rawNote,time:performance.now()-state.recordStart});
-  handleLesson(midiToName(midi));
+  if(state.recording) state.recorded.push({type:"on",note:noteName,rawNote,time:performance.now()-state.recordStart});
+  handleLesson(noteName);
 }
 function releaseNote(rawNote){
   const midi=applyTransposedMidi(noteNameToMidi(rawNote));
@@ -319,6 +322,44 @@ function paintRaagState(){
     el.classList.toggle("disabled",state.raagRestrict&&!raag.allowed.includes(pitch));
     el.classList.toggle("vadi",raag.vadi===pitch); el.classList.toggle("samvadi",raag.samvadi===pitch);
   });
+}
+
+/* ─── Keyboard scroll slider ─────────────────────────────────────── */
+function initKeyboardScroller(){
+  const scroller=document.getElementById("keyboardScroller");
+  const wrap=document.getElementById("keyboardScrollWrap");
+  const rangeLabel=document.getElementById("keyRangeLabel");
+  if(!scroller||!wrap) return;
+
+  function updateScroll(){
+    const pct=scroller.value/100;
+    const maxScroll=wrap.scrollWidth-wrap.clientWidth;
+    wrap.scrollLeft=pct*maxScroll;
+    // Update visible range label
+    const scrollPct=wrap.scrollLeft/Math.max(1,wrap.scrollWidth);
+    const totalKeys=KEY_COUNT;
+    const firstVisible=Math.floor(scrollPct*totalKeys);
+    const whites=WESTERN.filter(n=>!n.includes("#"));
+    const startMidiVisible=START_MIDI+firstVisible;
+    const endMidiVisible=Math.min(START_MIDI+KEY_COUNT-1, startMidiVisible+14);
+    if(rangeLabel) rangeLabel.textContent=midiToName(startMidiVisible)+" – "+midiToName(endMidiVisible);
+  }
+
+  // Sync scrollbar → slider when user touches/scrolls the keyboard directly
+  wrap.addEventListener("scroll",()=>{
+    const maxScroll=wrap.scrollWidth-wrap.clientWidth;
+    if(maxScroll>0) scroller.value=Math.round((wrap.scrollLeft/maxScroll)*100);
+  },{passive:true});
+
+  scroller.addEventListener("input",updateScroll);
+
+  // Resize observer to keep slider synced when layout changes
+  if(window.ResizeObserver){
+    new ResizeObserver(()=>{
+      const maxScroll=wrap.scrollWidth-wrap.clientWidth;
+      scroller.disabled=maxScroll<=0;
+    }).observe(wrap);
+  }
 }
 
 /* ─── Raag info ──────────────────────────────────────────────────── */
@@ -406,6 +447,7 @@ function buildTaalVisual(){
     b.id="taal-beat-"+i; b.textContent=i+1;
     wrap.appendChild(b);
   }
+  buildMobTaalVisual();
 }
 function taalClick(isSam,isKhali){
   if(!audioCtx) return;
@@ -636,6 +678,7 @@ function drawPianoRoll(){
     ctx.fill();
     if(w>18){ctx.fillStyle="#000";ctx.font="8px monospace";ctx.fillText(NOTE_TO_SARGAM[pitch]||pitch,x+2,y+6);}
   });
+  if(typeof drawMobPianoRoll==="function") drawMobPianoRoll();
 }
 
 /* ─── Waveform visualiser ────────────────────────────────────────── */
@@ -723,6 +766,7 @@ function refreshScaleUI(){
   const label=scaleLabel(),ft=state.finetune;
   document.getElementById("scaleLabel").textContent=label;
   const cs=document.getElementById("currentScale"); if(cs) cs.textContent=label+(ft!==0?(ft>0?"+":"")+ft:"");
+  const mcs=document.getElementById("mob-currentScale"); if(mcs) mcs.textContent=label+(ft!==0?(ft>0?"+":"")+ft:"");
   document.getElementById("rootOctaveLabel").textContent=state.rootOctave;
   document.getElementById("transposeDisplay").textContent=ft;
   document.getElementById("transposeVal").textContent=ft;
@@ -847,8 +891,289 @@ document.getElementById("loadSessionBtn").addEventListener("click",loadSession);
 document.getElementById("startMicBtn").addEventListener("click",startMic);
 document.getElementById("stopMicBtn").addEventListener("click",stopMic);
 
+/* ─── Mobile tab navigation ──────────────────────────────────────── */
+function initMobileTabs(){
+  const tabs=document.querySelectorAll(".mob-tab");
+  const panes=document.querySelectorAll(".mob-pane");
+  if(!tabs.length) return;
+  tabs.forEach(tab=>{
+    tab.addEventListener("click",()=>{
+      tabs.forEach(t=>t.classList.remove("mob-tab-active"));
+      panes.forEach(p=>p.classList.remove("mob-pane-active"));
+      tab.classList.add("mob-tab-active");
+      const target=document.getElementById("pane-"+tab.dataset.tab);
+      if(target) target.classList.add("mob-pane-active");
+    });
+  });
+}
+
+/* ─── Mobile keyboard (separate DOM instance for mobile) ─────────── */
+function buildMobileKeyboard(){
+  const el=document.getElementById("mob-keyboard"); if(!el) return;
+  el.innerHTML="";
+  const whites=[]; const WW=56; // narrower for mobile
+  for(let i=0;i<KEY_COUNT;i++){const midi=START_MIDI+i;if(!WESTERN[midi%12].includes("#"))whites.push({midi,idx:whites.length});}
+  whites.forEach(({midi,idx})=>{
+    const pitch=WESTERN[midi%12],oct=Math.floor(midi/12)-1,rawNote=pitch+oct;
+    const key=document.createElement("div"); key.className="white-key"; key.dataset.note=rawNote; key.dataset.midi=midi;
+    key.style.left=idx*(WW+2)+"px";
+    key.innerHTML=`<div class="key-label"><span class="key-western">${pitch}</span><span class="key-sargam">${NOTE_TO_SARGAM[pitch]||""}</span></div>`;
+    attachKeyEvents(key,rawNote); el.appendChild(key);
+  });
+  const bO={1:38,3:94,6:206,8:262,10:318};
+  for(let i=0;i<KEY_COUNT;i++){
+    const midi=START_MIDI+i,pitch=WESTERN[midi%12];
+    if(!pitch.includes("#")) continue;
+    const step=midi%12,group=Math.floor((midi-START_MIDI)/12),left=group*(WW*7+14)+(bO[step]||0);
+    const oct=Math.floor(midi/12)-1,rawNote=pitch+oct;
+    const key=document.createElement("div"); key.className="black-key"; key.dataset.note=rawNote; key.dataset.midi=midi;
+    key.style.left=left+"px";
+    key.innerHTML=`<div class="key-label key-label-black"><span class="key-sargam">${NOTE_TO_SARGAM[pitch]||""}</span></div>`;
+    attachKeyEvents(key,rawNote); el.appendChild(key);
+  }
+  paintRaagState();
+  // Init mobile keyboard scroller
+  const scroller=document.getElementById("mob-keyboardScroller");
+  const wrap=document.getElementById("mob-keyboardScrollWrap");
+  if(scroller&&wrap){
+    scroller.addEventListener("input",()=>{
+      const pct=scroller.value/100;
+      wrap.scrollLeft=pct*(wrap.scrollWidth-wrap.clientWidth);
+    });
+    wrap.addEventListener("scroll",()=>{
+      const max=wrap.scrollWidth-wrap.clientWidth;
+      if(max>0) scroller.value=Math.round((wrap.scrollLeft/max)*100);
+    },{passive:true});
+  }
+}
+
+/* ─── Mobile display sync ────────────────────────────────────────── */
+function syncMobileDisplay(note,sargam,scale,recStatus){
+  const ids={note:"mob-currentNote",sargam:"mob-currentSargam",scale:"mob-currentScale"};
+  if(note){ const el=document.getElementById(ids.note); if(el) el.textContent=note; }
+  if(sargam){ const el=document.getElementById(ids.sargam); if(el) el.textContent=sargam; }
+  if(scale){ const el=document.getElementById(ids.scale); if(el) el.textContent=scale; }
+}
+
+/* ─── Populate mobile selects ────────────────────────────────────── */
+function populateMobileSelects(){
+  // Raag select
+  const mobRaag=document.getElementById("mob-raagSelect");
+  if(mobRaag) Object.entries(RAAGS).forEach(([key,val])=>{const o=document.createElement("option");o.value=key;o.textContent=val.name;mobRaag.appendChild(o);});
+  // Lesson select
+  const mobLesson=document.getElementById("mob-lessonSelect");
+  if(mobLesson) LESSONS.forEach(l=>{const o=document.createElement("option");o.value=l.id;o.textContent=l.name;mobLesson.appendChild(o);});
+  // Overtone sliders for mobile
+  const mobOT=document.getElementById("mob-overtoneSlidersWrap");
+  if(mobOT){
+    const labels=["1st","2nd","3rd","4th","5th","6th","7th","8th"];
+    state.overtones.forEach((val,i)=>{
+      const row=document.createElement("div"); row.className="overtone-row";
+      row.innerHTML=`<span class="overtone-label">${labels[i]}</span>
+        <input type="range" class="slider" min="0" max="100" value="${Math.round(val*100)}" />
+        <span class="ctrl-val" id="mob-hVal${i}">${Math.round(val*100)}</span>`;
+      mobOT.appendChild(row);
+      row.querySelector("input").addEventListener("input",e=>{
+        state.overtones[i]=+e.target.value/100;
+        document.getElementById("mob-hVal"+i).textContent=e.target.value;
+      });
+    });
+  }
+}
+
+/* ─── Mobile controls wiring ─────────────────────────────────────── */
+function mirrorSlider(mobId,deskId,stateKey,valId,transform){
+  const mob=document.getElementById(mobId);
+  const desk=document.getElementById(deskId);
+  if(!mob) return;
+  mob.addEventListener("input",e=>{
+    const v=+e.target.value;
+    state[stateKey]=transform?transform(v):v;
+    if(desk) desk.value=v;
+    const valEl=document.getElementById(valId); if(valEl) valEl.textContent=v;
+    const deskValEl=document.getElementById(valId.replace("mob-","")); if(deskValEl) deskValEl.textContent=v;
+  });
+}
+
+function wireMobileControls(){
+  // Sliders
+  mirrorSlider("mob-volume","volume","volume","mob-volumeVal",v=>v/100);
+  mirrorSlider("mob-reverb","reverb","reverb","mob-reverbVal",v=>v/100);
+  mirrorSlider("mob-sustain","sustain","sustain","mob-sustainVal");
+  mirrorSlider("mob-reedBrightness","reedBrightness","reedBrightness","mob-reedBrightnessVal");
+  mirrorSlider("mob-reedChorus","reedChorus","reedChorus","mob-reedChorusVal");
+  mirrorSlider("mob-reedTremolo","reedTremolo","reedTremolo","mob-reedTremoloVal");
+  mirrorSlider("mob-reedSubOctave","reedSubOctave","reedSubOctave","mob-reedSubOctaveVal");
+
+  const mobTrRate=document.getElementById("mob-reedTremoloRate");
+  if(mobTrRate) mobTrRate.addEventListener("input",e=>{
+    state.reedTremoloRate=+e.target.value;
+    const el=document.getElementById("mob-reedTremoloRateVal"); if(el) el.textContent=(+e.target.value).toFixed(1);
+    const desk=document.getElementById("reedTremoloRate"); if(desk) desk.value=e.target.value;
+    updateReedTremolo();
+  });
+
+  // Toggles
+  const mobDrone=document.getElementById("mob-droneToggle");
+  if(mobDrone) mobDrone.addEventListener("change",e=>{
+    state.drone=e.target.checked;
+    const desk=document.getElementById("droneToggle"); if(desk) desk.checked=e.target.checked;
+    if(!audioCtx){initAudio().then(()=>state.drone&&activateDrone());return;}
+    state.drone?activateDrone():deactivateDrone();
+  });
+  const mobRestrict=document.getElementById("mob-raagRestrict");
+  if(mobRestrict) mobRestrict.addEventListener("change",e=>{
+    state.raagRestrict=e.target.checked;
+    const desk=document.getElementById("raagRestrict"); if(desk) desk.checked=e.target.checked;
+    paintRaagState();
+  });
+  const mobChime=document.getElementById("mob-reedChime");
+  if(mobChime) mobChime.addEventListener("change",e=>{
+    state.reedChime=e.target.checked;
+    const desk=document.getElementById("reedChime"); if(desk) desk.checked=e.target.checked;
+  });
+
+  // Selects
+  const mobRaag=document.getElementById("mob-raagSelect");
+  if(mobRaag) mobRaag.addEventListener("change",e=>{
+    state.raag=e.target.value;
+    const desk=document.getElementById("raagSelect"); if(desk) desk.value=e.target.value;
+    updateRaagInfo(); paintRaagState();
+  });
+
+  const mobKey=document.getElementById("mob-keySelect");
+  const mobOct=document.getElementById("mob-rootOctSelect");
+  const applyMobKey=()=>{
+    if(mobKey) state.scaleSemi=+mobKey.value;
+    if(mobOct) state.rootOctave=+mobOct.value;
+    refreshScaleUI();
+  };
+  if(mobKey) mobKey.addEventListener("change",applyMobKey);
+  if(mobOct) mobOct.addEventListener("change",applyMobKey);
+
+  const mobTemp=document.getElementById("mob-temperamentSelect");
+  if(mobTemp) mobTemp.addEventListener("change",e=>{
+    state.temperament=e.target.value;
+    const desk=document.getElementById("temperamentSelect"); if(desk) desk.value=e.target.value;
+    showToast("Tuning: "+TEMPERAMENTS[e.target.value].name);
+  });
+
+  // Taal
+  const mobTaalSel=document.getElementById("mob-taalSelect");
+  if(mobTaalSel) mobTaalSel.addEventListener("change",e=>{
+    state.taal=e.target.value;
+    const desk=document.getElementById("taalSelect"); if(desk) desk.value=e.target.value;
+    stopTaal();
+    buildTaalVisual(); buildMobTaalVisual();
+  });
+  const mobTaalBPM=document.getElementById("mob-taalBPM");
+  if(mobTaalBPM) mobTaalBPM.addEventListener("input",e=>{
+    state.taalBPM=+e.target.value;
+    const el=document.getElementById("mob-taalBPMVal"); if(el) el.textContent=e.target.value;
+    const desk=document.getElementById("taalBPM"); if(desk) desk.value=e.target.value;
+    const deskVal=document.getElementById("taalBPMVal"); if(deskVal) deskVal.textContent=e.target.value;
+    if(state.taalRunning){stopTaal();startTaal();}
+  });
+  const mobTaalRun=document.getElementById("mob-taalRunBtn");
+  if(mobTaalRun) mobTaalRun.addEventListener("click",()=>{
+    state.taalRunning?stopTaal():startTaal();
+  });
+
+  // Lesson (mobile)
+  const mobLessonSel=document.getElementById("mob-lessonSelect");
+  if(mobLessonSel) mobLessonSel.addEventListener("change",e=>{
+    state.lesson=LESSONS.find(l=>l.id===e.target.value);
+    state.lessonIndex=0;state.lessonHits=0;state.lessonAttempts=0;
+    const sc=document.getElementById("mob-lessonScore"); if(sc) sc.textContent="0%";
+    updateMobLessonHint();
+  });
+  const mobStartLesson=document.getElementById("mob-startLesson");
+  if(mobStartLesson) mobStartLesson.addEventListener("click",()=>{
+    state.lessonIndex=0;state.lessonHits=0;state.lessonAttempts=0;
+    const sc=document.getElementById("mob-lessonScore"); if(sc) sc.textContent="0%";
+    updateMobLessonHint();
+  });
+  const mobNextHint=document.getElementById("mob-nextHint");
+  if(mobNextHint) mobNextHint.addEventListener("click",()=>{
+    state.lessonIndex=Math.min(state.lesson.notes.length-1,state.lessonIndex+1);
+    updateMobLessonHint();
+  });
+
+  // Recording (mobile)
+  const mobRecord=document.getElementById("mob-recordBtn");
+  if(mobRecord) mobRecord.addEventListener("click",()=>{
+    toggleRecording();
+    mobRecord.textContent=state.recording?"⏹ Stop":"⏺ Record";
+    const mobRec=document.getElementById("mob-recordStatus"); if(mobRec) mobRec.textContent=state.recording?"●":"—";
+  });
+  const mobPlay=document.getElementById("mob-playRecordingBtn");
+  if(mobPlay) mobPlay.addEventListener("click",playRecording);
+  const mobClear=document.getElementById("mob-clearRecordingBtn");
+  if(mobClear) mobClear.addEventListener("click",()=>{
+    state.recorded=[];state.pianoRoll=[];
+    document.getElementById("recordStatus").textContent="REC —";
+    drawPianoRoll(); drawMobPianoRoll();
+  });
+  const mob_eJson=document.getElementById("mob-exportJsonBtn"); if(mob_eJson) mob_eJson.addEventListener("click",exportJSON);
+  const mob_eMidi=document.getElementById("mob-exportMidiBtn"); if(mob_eMidi) mob_eMidi.addEventListener("click",exportMIDI);
+  const mob_eWav=document.getElementById("mob-exportWavBtn"); if(mob_eWav) mob_eWav.addEventListener("click",exportWAV);
+  const mob_eMp3=document.getElementById("mob-exportMp3Btn"); if(mob_eMp3) mob_eMp3.addEventListener("click",exportMP3);
+
+  // Session
+  const mobSave=document.getElementById("mob-saveSessionBtn"); if(mobSave) mobSave.addEventListener("click",saveSession);
+  const mobLoad=document.getElementById("mob-loadSessionBtn"); if(mobLoad) mobLoad.addEventListener("click",loadSession);
+
+  // Mic
+  const mobMic=document.getElementById("mob-startMicBtn"); if(mobMic) mobMic.addEventListener("click",startMic);
+  const mobMicStop=document.getElementById("mob-stopMicBtn"); if(mobMicStop) mobMicStop.addEventListener("click",stopMic);
+
+  // Alap/Jod/Jhala (mobile phase buttons)
+  ["alap","jod","jhala"].forEach(p=>{
+    const btn=document.getElementById("mob-phase-"+p);
+    if(btn) btn.addEventListener("click",()=>setPhase(p));
+  });
+}
+
+function buildMobTaalVisual(){
+  const taal=TAALS[state.taal], wrap=document.getElementById("mob-taalBeatsWrap"); if(!wrap) return;
+  wrap.innerHTML="";
+  for(let i=0;i<taal.beats;i++){
+    const b=document.createElement("div");
+    b.className="taal-beat"+(i===taal.sam?" taal-sam":taal.khali.includes(i)?" taal-khali":"");
+    b.id="mob-taal-beat-"+i; b.textContent=i+1;
+    wrap.appendChild(b);
+  }
+}
+
+function updateMobLessonHint(){
+  const target=state.lesson.notes[state.lessonIndex];
+  const hint=document.getElementById("mob-lessonHint"); if(!hint) return;
+  if(!target){hint.textContent="🎉 Complete!";return;}
+  const pitch=stripOct(target);
+  hint.innerHTML=`Play → <strong>${target}</strong> <em class="sg">${NOTE_TO_SARGAM[pitch]||""}</em><span class="hint-progress">${state.lessonIndex+1}/${state.lesson.notes.length}</span>`;
+}
+
+function drawMobPianoRoll(){
+  const canvas=document.getElementById("mob-pianoRollCanvas"); if(!canvas) return;
+  const ctx=canvas.getContext("2d"),W=canvas.width,H=canvas.height;
+  ctx.fillStyle="#080810"; ctx.fillRect(0,0,W,H);
+  const evs=state.pianoRoll; if(!evs.length) return;
+  const totalMs=Math.max(...evs.map(e=>e.end),1000);
+  const minM=Math.min(...evs.map(e=>e.midi))-1,maxM=Math.max(...evs.map(e=>e.midi))+1,mRange=maxM-minM||12;
+  evs.forEach(({midi,start,end})=>{
+    const x=(start/totalMs)*W,w=Math.max(3,((end-start)/totalMs)*W),y=H-(((midi-minM)/mRange)*H)-5;
+    ctx.fillStyle=WESTERN[midi%12].includes("#")?"#b07810":"#e8b020";
+    ctx.fillRect(x,y,w,6);
+  });
+}
+
 /* ─── Boot ───────────────────────────────────────────────────────── */
 populateRaags(); populateLessons(); buildKeyboard(); initMIDI();
 refreshScaleUI(); renderOvertoneSliders(); buildTaalVisual();
 updateTimeOfDayRaag(); setInterval(updateTimeOfDayRaag,60000);
 drawPianoRoll();
+initKeyboardScroller();
+initMobileTabs();
+buildMobileKeyboard();
+wireMobileControls();
+populateMobileSelects();
